@@ -14,13 +14,13 @@ pipeline {
         }
 
     stage('Test') {
-        steps {
-            bat '''
-            pytest tests/test_app.py > test-report.txt || echo Tests failed but continuing...
-            '''
-            archiveArtifacts artifacts: 'test-report.txt'
-        }
-        }
+    steps {
+        bat '''
+        docker run --rm -v %cd%:/app -w /app %IMAGE_NAME% pytest tests/test_app.py > test-report.txt || echo Tests failed but continuing...
+        '''
+        archiveArtifacts artifacts: 'test-report.txt'
+    }
+}
 
 stage('Code Quality') {
     steps {
