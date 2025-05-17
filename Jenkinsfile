@@ -15,6 +15,7 @@ pipeline {
 
         stage('Test') {
             steps {
+                bat 'pip install pytest'
                 bat 'pytest test_app.py > test-report.txt || echo Tests failed but continuing...'
                 archiveArtifacts artifacts: 'test-report.txt'
             }
@@ -22,6 +23,7 @@ pipeline {
 
         stage('Code Quality') {
             steps {
+                bat 'pip install pylint'
                 bat 'pylint app.py > pylint-report.txt || echo Linting failed but continuing...'
                 archiveArtifacts artifacts: 'pylint-report.txt'
             }
