@@ -13,17 +13,14 @@ pipeline {
             }
         }
 
-        stage('Test') {
-    steps {
-        bat '''
-        "C:\\Users\\RJ\\AppData\\Local\\Programs\\Python\\Python311\\python.exe" -m venv venv
-        call venv\\Scripts\\activate
-        venv\\Scripts\\pip install -r requirements.txt
-        venv\\Scripts\\pytest test_app.py > test-report.txt || echo Tests failed but continuing...
-        '''
-        archiveArtifacts artifacts: 'test-report.txt'
-    }
-}
+    stage('Test') {
+        steps {
+            bat '''
+            pytest tests/test_app.py > test-report.txt || echo Tests failed but continuing...
+            '''
+            archiveArtifacts artifacts: 'test-report.txt'
+        }
+        }
 
 stage('Code Quality') {
     steps {

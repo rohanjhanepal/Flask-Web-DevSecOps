@@ -1,0 +1,20 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.0, pytest-8.3.5, pluggy-1.6.0
+rootdir: C:\Users\RJ\OneDrive - Deakin University\T1 - 2025\SIT753\hd\Flask-Web-DevSecOps
+plugins: anyio-3.7.1
+collected 1 item
+
+tests\test_app.py E                                                      [100%]
+
+=================================== ERRORS ====================================
+______________________ ERROR at setup of test_home_page _______________________
+file C:\Users\RJ\OneDrive - Deakin University\T1 - 2025\SIT753\hd\Flask-Web-DevSecOps\tests\test_app.py, line 4
+  def test_home_page(client):
+E       fixture 'client' not found
+>       available fixtures: anyio_backend, anyio_backend_name, anyio_backend_options, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, doctest_namespace, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+C:\Users\RJ\OneDrive - Deakin University\T1 - 2025\SIT753\hd\Flask-Web-DevSecOps\tests\test_app.py:4
+=========================== short test summary info ===========================
+ERROR tests/test_app.py::test_home_page
+============================== 1 error in 0.02s ===============================
