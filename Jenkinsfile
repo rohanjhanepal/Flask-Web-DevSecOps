@@ -1,5 +1,9 @@
 pipeline {
-    agent any
+    agent {
+        docker {
+            image 'python:3.11'
+        }
+    }
 
     environment {
         IMAGE_NAME = "flask-web-app"
@@ -14,32 +18,38 @@ pipeline {
         }
 
         stage('Test') {
-            steps {
-                bat '''
-                python -m venv venv
-                call venv\\Scripts\\activate
-                pip install -r requirements.txt
-                pytest test_app.py > test-report.txt || echo Tests failed but continuing...
-                '''
-                bat 'pytest test_app.py > test-report.txt || echo Tests failed but continuing...'
-                archiveArtifacts artifacts: 'test-report.txt'
-            }
-        }
+    steps {
+        bat '''
+        "C:\\Users\\RJ\\AppData\\Local\\Programs\\Python\\Python311\\python.exe" -m venv venv
+        call venv\\Scripts\\activate
+        venv\\Scripts\\pip install -r requirements.txt
+        venv\\Scripts\\pytest test_app.py > test-report.txt || echo Tests failed but continuing...
+        '''
+        archiveArtifacts artifacts: 'test-report.txt'
+    }
+}
 
-        stage('Code Quality') {
-            steps {
-                bat 'pylint app.py > pylint-report.txt || echo Linting failed but continuing...'
-                archiveArtifacts artifacts: 'pylint-report.txt'
-            }
-        }
+stage('Code Quality') {
+    steps {
+        bat '''
+        call venv\\Scripts\\activate
+        venv\\Scripts\\pylint app.py > pylint-report.txt || echo Linting failed but continuing...
+        '''
+        archiveArtifacts artifacts: 'pylint-report.txt'
+    }
+}
 
-        stage('Security') {
-            steps {
-                bat 'pip install bandit'
-                bat 'bandit -r . > bandit-report.txt || echo Bandit failed but continuing...'
-                archiveArtifacts artifacts: 'bandit-report.txt'
-            }
-        }
+stage('Security') {
+    steps {
+        bat '''
+        call venv\\Scripts\\activate
+        venv\\Scripts\\pip install bandit
+        venv\\Scripts\\bandit -r . > bandit-report.txt || echo Bandit failed but continuing...
+        '''
+        archiveArtifacts artifacts: 'bandit-report.txt'
+    }
+}
+
 
         // stage('Deploy') {
         //     steps {
