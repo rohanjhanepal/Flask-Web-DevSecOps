@@ -46,7 +46,7 @@ stage('Security') {
                 bat '''
                 docker stop flask-test-container || echo "Container not running"
                 docker rm flask-test-container || echo "Container does not exist"
-                docker run -d -p 5000:5000 --name flask-test-container %IMAGE_NAME%
+                docker run -d -p 5000:5000 --name flask-test-container %IMAGE_NAME% > docker-run.txt
                 '''
             }
         }
