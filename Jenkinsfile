@@ -58,10 +58,10 @@ pipeline {
 
         stage('Release to Azure') {
             environment {
-                AZURE_CLIENT_ID = credentials('azure-client-id') // 66b584d4-72b3-44ce-b5b1-8836100f0a44
-                AZURE_CLIENT_SECRET = credentials('azure-client-secret') // Zoy8Q~BkzQQ12H6jTAkIfUx3j4FqsLSoZ1Fa5a-6
-                AZURE_TENANT_ID = credentials('azure-tenant-id') // 2625129d-99a2-4df5-988e-5c5d07e7d0fb
-                AZURE_SUBSCRIPTION_ID = credentials('azure-subscription-id') // b301fe61-70be-4694-a6bf-08ccf65fc4b4
+                AZURE_CLIENT_ID = credentials('azure-client-id') 
+                AZURE_CLIENT_SECRET = credentials('azure-client-secret')
+                AZURE_TENANT_ID = credentials('azure-tenant-id')
+                AZURE_SUBSCRIPTION_ID = credentials('azure-subscription-id')
             }
 
             steps {
