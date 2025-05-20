@@ -4,6 +4,12 @@ pipeline {
     environment {
         IMAGE_NAME = "flask-web-app"
         DOCKER_REGISTRY = "rohanjhanepal"
+
+        // Azure configuration
+        AZURE_RESOURCE_GROUP = "flask-rg"
+        AZURE_APP_NAME = "flask-web-app-demo-s224679796" 
+        AZURE_PLAN = "flask-plan"
+        AZURE_LOCATION = "eastus"
     }
 
     stages {
@@ -13,35 +19,34 @@ pipeline {
             }
         }
 
-    stage('Test') {
-    steps {
-        bat '''
-        docker run --rm -v %cd%:/app -w /app %IMAGE_NAME% pytest tests/test_app.py > test-report.txt || echo Tests failed but continuing...
-        '''
-        archiveArtifacts artifacts: 'test-report.txt'
-    }
-}
+        stage('Test') {
+            steps {
+                bat '''
+                docker run --rm -v %cd%:/app -w /app %IMAGE_NAME% pytest tests/test_app.py > test-report.txt || echo Tests failed but continuing...
+                '''
+                archiveArtifacts artifacts: 'test-report.txt'
+            }
+        }
 
-stage('Code Quality') {
-    steps {
-        bat '''
-        docker run --rm -v %cd%:/app -w /app %IMAGE_NAME% pylint main.py > pylint-report.txt || echo Lint failed but continuing...
-        '''
-        archiveArtifacts artifacts: 'pylint-report.txt'
-    }
-}
+        stage('Code Quality') {
+            steps {
+                bat '''
+                docker run --rm -v %cd%:/app -w /app %IMAGE_NAME% pylint main.py > pylint-report.txt || echo Lint failed but continuing...
+                '''
+                archiveArtifacts artifacts: 'pylint-report.txt'
+            }
+        }
 
-stage('Security') {
-    steps {
-        bat '''
-        docker run --rm -v %cd%:/app -w /app %IMAGE_NAME% bandit main.py --severity-level=high > bandit-report.txt || echo Security Tests failed but continuing...
-        '''
-        archiveArtifacts artifacts: 'bandit-report.txt'
-    }
-}
+        stage('Security') {
+            steps {
+                bat '''
+                docker run --rm -v %cd%:/app -w /app %IMAGE_NAME% bandit main.py --severity-level=high > bandit-report.txt || echo Security scan failed but continuing...
+                '''
+                archiveArtifacts artifacts: 'bandit-report.txt'
+            }
+        }
 
-
-        stage('Deploy') {
+        stage('Deploy (Local Test)') {
             steps {
                 bat '''
                 docker stop flask-test-container || echo "Container not running"
@@ -51,18 +56,56 @@ stage('Security') {
             }
         }
 
-        // stage('Release') {
-        //     steps {
-        //         bat 'docker tag %IMAGE_NAME% %DOCKER_REGISTRY%/%IMAGE_NAME%:latest'
-        //         bat 'docker push %DOCKER_REGISTRY%/%IMAGE_NAME%:latest'
-        //     }
-        // }
+        stage('Release to Azure') {
+            environment {
+                AZURE_CLIENT_ID = credentials('azure-client-id') // 66b584d4-72b3-44ce-b5b1-8836100f0a44
+                AZURE_CLIENT_SECRET = credentials('azure-client-secret') // Zoy8Q~BkzQQ12H6jTAkIfUx3j4FqsLSoZ1Fa5a-6
+                AZURE_TENANT_ID = credentials('azure-tenant-id') // 2625129d-99a2-4df5-988e-5c5d07e7d0fb
+                AZURE_SUBSCRIPTION_ID = credentials('azure-subscription-id') // b301fe61-70be-4694-a6bf-08ccf65fc4b4
+            }
 
-        // stage('Monitoring') {
-        //     steps {
-        //         echo "Monitoring setup would include New Relic or Prometheus setup (refer to the report)."
-        //     }
-        // }
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'docker-hub-cred',
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
+                )]) {
+                    bat '''
+                    REM Step 1: Login and push Docker image to Docker Hub
+                    echo Logging in to Docker Hub...
+                    echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin
+                    docker tag %IMAGE_NAME% %DOCKER_REGISTRY%/%IMAGE_NAME%:latest
+                    docker push %DOCKER_REGISTRY%/%IMAGE_NAME%:latest
+
+                    REM Step 2: Azure login using service principal
+                    az logout
+                    az login --service-principal -u %AZURE_CLIENT_ID% -p %AZURE_CLIENT_SECRET% --tenant %AZURE_TENANT_ID%
+                    az account set --subscription %AZURE_SUBSCRIPTION_ID%
+
+                    REM Step 3: Create resource group (if not exists)
+                    az group create --name %AZURE_RESOURCE_GROUP% --location %AZURE_LOCATION%
+
+                    REM Step 4: Create App Service Plan (if not exists)
+                    az appservice plan create --name %AZURE_PLAN% --resource-group %AZURE_RESOURCE_GROUP% --sku B1 --is-linux
+
+                    REM Step 5: Deploy container to Azure Web App
+                    az webapp create ^
+                        --resource-group %AZURE_RESOURCE_GROUP% ^
+                        --plan %AZURE_PLAN% ^
+                        --name %AZURE_APP_NAME% ^
+                        --deployment-container-image-name %DOCKER_REGISTRY%/%IMAGE_NAME%:latest
+
+                    REM Step 6: Set WEBSITES_PORT for Flask (default 5000)
+                    az webapp config appsettings set ^
+                        --resource-group %AZURE_RESOURCE_GROUP% ^
+                        --name %AZURE_APP_NAME% ^
+                        --settings WEBSITES_PORT=5000
+
+                    echo Azure deployment complete. Visit: https://%AZURE_APP_NAME%.azurewebsites.net
+                    '''
+                }
+            }
+        }
     }
 
     post {
@@ -70,7 +113,7 @@ stage('Security') {
             echo "Pipeline completed successfully!"
         }
         failure {
-            echo "Pipeline failed."
+            echo "Pipeline failed. Please check logs."
         }
     }
 }
