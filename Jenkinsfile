@@ -25,8 +25,7 @@ pipeline {
 stage('Code Quality') {
     steps {
         bat '''
-        call venv\\Scripts\\activate
-        venv\\Scripts\\pylint app.py > pylint-report.txt || echo Linting failed but continuing...
+        docker run --rm -v %cd%:/app -w /app %IMAGE_NAME% pylint main.py > pylint-report.txt > test-report.txt || echo Lint failed but continuing...
         '''
         archiveArtifacts artifacts: 'pylint-report.txt'
     }
@@ -35,9 +34,7 @@ stage('Code Quality') {
 stage('Security') {
     steps {
         bat '''
-        call venv\\Scripts\\activate
-        venv\\Scripts\\pip install bandit
-        venv\\Scripts\\bandit -r . > bandit-report.txt || echo Bandit failed but continuing...
+        docker run --rm -v %cd%:/app -w /app %IMAGE_NAME% bandit -r . > bandit-report.txt > pylint-report.txt > test-report.txt || echo Security Tests failed but continuing...
         '''
         archiveArtifacts artifacts: 'bandit-report.txt'
     }
