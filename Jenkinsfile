@@ -73,8 +73,7 @@ pipeline {
                     bat '''
                     REM Step 1: Login and push Docker image to Docker Hub
                     echo Logging in to Docker Hub...
-                    echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin
-                    docker tag %IMAGE_NAME% %DOCKER_REGISTRY%/%IMAGE_NAME%:latest
+                    powershell -Command "$env:DOCKER_PASS | docker login -u $env:DOCKER_USER --password-stdin"                    docker tag %IMAGE_NAME% %DOCKER_REGISTRY%/%IMAGE_NAME%:latest
                     docker push %DOCKER_REGISTRY%/%IMAGE_NAME%:latest
 
                     REM Step 2: Azure login using service principal
