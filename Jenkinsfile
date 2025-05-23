@@ -2,6 +2,7 @@ pipeline {
     agent any
 
     environment {
+        // Docker Configuration
         IMAGE_NAME = "flask-web-app"
         DOCKER_REGISTRY = "rohanjhanepal"
 
@@ -87,6 +88,21 @@ pipeline {
                 }
             }
         }
+        stage('Monitoring and Alerting') {
+    environment {
+        DATADOG_API_KEY = credentials('datadog-api-key')
+        AZURE_APP_URL = "https://%AZURE_APP_NAME%.azurewebsites.net"
+    }
+        steps {
+            bat '''
+            az login --service-principal -u %AZURE_CLIENT_ID% -p %AZURE_CLIENT_SECRET% --tenant %AZURE_TENANT_ID% ^
+            && az account set --subscription %AZURE_SUBSCRIPTION_ID% ^
+            && az provider register --namespace Microsoft.Web ^
+            && az webapp monitoring enable --resource-group %AZURE_RESOURCE_GROUP% --name %AZURE_APP_NAME% --location %AZURE_LOCATION%
+            '''
+        }
+}
+
     }
 
     post {
