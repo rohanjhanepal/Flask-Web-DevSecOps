@@ -71,26 +71,18 @@ pipeline {
                     passwordVariable: 'DOCKER_PASS'
                 )]) {
                     bat '''
-                    REM Step 1: Login and push Docker image to Docker Hub
-                    echo Logging in to Docker Hub...
-                    powershell -Command "$env:DOCKER_PASS | docker login -u $env:DOCKER_USER --password-stdin"                    
-                    docker tag %IMAGE_NAME% %DOCKER_REGISTRY%/%IMAGE_NAME%:latest
-                    docker push %DOCKER_REGISTRY%/%IMAGE_NAME%:latest
-
-                    REM Step 2: Azure login using service principal
-                    az login --service-principal -u %AZURE_CLIENT_ID% -p %AZURE_CLIENT_SECRET% --tenant %AZURE_TENANT_ID%
-                    az account set --subscription %AZURE_SUBSCRIPTION_ID%
-
-                    az group create --name %AZURE_RESOURCE_GROUP% --location %AZURE_LOCATION%
-
-                    az appservice plan create --name %AZURE_PLAN% --resource-group %AZURE_RESOURCE_GROUP% --sku B1 --is-linux
-
-                    az webapp create --resource-group %AZURE_RESOURCE_GROUP% --plan %AZURE_PLAN% --name %AZURE_APP_NAME% --deployment-container-image-name %DOCKER_REGISTRY%/%IMAGE_NAME%:latest
-
-                    az webapp config appsettings set --resource-group %AZURE_RESOURCE_GROUP% --name %AZURE_APP_NAME% --settings WEBSITES_PORT=5000
-
-                    echo Azure deployment complete. Visit: https://%AZURE_APP_NAME%.azurewebsites.net
-                    '''
+                        echo Logging in to Docker Hub... ^
+                        && powershell -Command "$env:DOCKER_PASS | docker login -u $env:DOCKER_USER --password-stdin" ^
+                        && docker tag %IMAGE_NAME% %DOCKER_REGISTRY%/%IMAGE_NAME%:latest ^
+                        && docker push %DOCKER_REGISTRY%/%IMAGE_NAME%:latest ^
+                        && az login --service-principal -u %AZURE_CLIENT_ID% -p %AZURE_CLIENT_SECRET% --tenant %AZURE_TENANT_ID% ^
+                        && az account set --subscription %AZURE_SUBSCRIPTION_ID% ^
+                        && az group create --name %AZURE_RESOURCE_GROUP% --location %AZURE_LOCATION% ^
+                        && az appservice plan create --name %AZURE_PLAN% --resource-group %AZURE_RESOURCE_GROUP% --sku B1 --is-linux ^
+                        && az webapp create --resource-group %AZURE_RESOURCE_GROUP% --plan %AZURE_PLAN% --name %AZURE_APP_NAME% --deployment-container-image-name %DOCKER_REGISTRY%/%IMAGE_NAME%:latest ^
+                        && az webapp config appsettings set --resource-group %AZURE_RESOURCE_GROUP% --name %AZURE_APP_NAME% --settings WEBSITES_PORT=5000 ^
+                        && echo Azure deployment complete. Visit: https://%AZURE_APP_NAME%.azurewebsites.net
+                        '''
                 }
             }
         }
