@@ -77,6 +77,7 @@ pipeline {
                         && docker push %DOCKER_REGISTRY%/%IMAGE_NAME%:latest ^
                         && az login --service-principal -u %AZURE_CLIENT_ID% -p %AZURE_CLIENT_SECRET% --tenant %AZURE_TENANT_ID% ^
                         && az account set --subscription %AZURE_SUBSCRIPTION_ID% ^
+                        && az provider register --namespace Microsoft.Web ^
                         && az group create --name %AZURE_RESOURCE_GROUP% --location %AZURE_LOCATION% ^
                         && az appservice plan create --name %AZURE_PLAN% --resource-group %AZURE_RESOURCE_GROUP% --sku B1 --is-linux ^
                         && az webapp create --resource-group %AZURE_RESOURCE_GROUP% --plan %AZURE_PLAN% --name %AZURE_APP_NAME% --deployment-container-image-name %DOCKER_REGISTRY%/%IMAGE_NAME%:latest ^
