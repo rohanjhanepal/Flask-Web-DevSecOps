@@ -89,22 +89,42 @@ pipeline {
             }
         }
         stage('Monitoring and Alerting') {
-    environment {
-        AZURE_CLIENT_ID = credentials('azure-client-id') 
-        AZURE_CLIENT_SECRET = credentials('azure-client-secret')
-        AZURE_TENANT_ID = credentials('azure-tenant-id')
-        AZURE_SUBSCRIPTION_ID = credentials('azure-subscription-id')
-        AZURE_APP_URL = "https://%AZURE_APP_NAME%.azurewebsites.net"
+            environment {
+                AZURE_CLIENT_ID = credentials('azure-client-id') 
+                AZURE_CLIENT_SECRET = credentials('azure-client-secret')
+                AZURE_TENANT_ID = credentials('azure-tenant-id')
+                AZURE_SUBSCRIPTION_ID = credentials('azure-subscription-id')
+            }
+    steps {
+        bat '''
+            echo Enabling Application Insights and logging... ^
+
+            && az monitor app-insights component create ^
+                --app flask-insights ^
+                --location eastus ^
+                --resource-group %AZURE_RESOURCE_GROUP% ^
+                --application-type web ^
+
+            && FOR /F %%i IN ('az monitor app-insights component show ^
+                --app flask-insights ^
+                --resource-group %AZURE_RESOURCE_GROUP% ^
+                --query instrumentationKey -o tsv') DO (
+                    az webapp config appsettings set ^
+                        --resource-group %AZURE_RESOURCE_GROUP% ^
+                        --name %AZURE_APP_NAME% ^
+                        --settings APPINSIGHTS_INSTRUMENTATIONKEY=%%i
+                ) ^
+
+            && az webapp log config ^
+                --name %AZURE_APP_NAME% ^
+                --resource-group %AZURE_RESOURCE_GROUP% ^
+                --application-logging true ^
+
+            && echo Monitoring setup complete.
+        '''
     }
-        steps {
-            bat '''
-            az login --service-principal -u %AZURE_CLIENT_ID% -p %AZURE_CLIENT_SECRET% --tenant %AZURE_TENANT_ID% ^
-            && az account set --subscription %AZURE_SUBSCRIPTION_ID% ^
-            && az provider register --namespace Microsoft.Web ^
-            && az webapp monitoring enable --resource-group %AZURE_RESOURCE_GROUP% --name %AZURE_APP_NAME% --location %AZURE_LOCATION%
-            '''
-        }
 }
+
 
     }
 
