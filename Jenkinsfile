@@ -90,7 +90,10 @@ pipeline {
         }
         stage('Monitoring and Alerting') {
     environment {
-        DATADOG_API_KEY = credentials('datadog-api-key')
+        AZURE_CLIENT_ID = credentials('azure-client-id') 
+        AZURE_CLIENT_SECRET = credentials('azure-client-secret')
+        AZURE_TENANT_ID = credentials('azure-tenant-id')
+        AZURE_SUBSCRIPTION_ID = credentials('azure-subscription-id')
         AZURE_APP_URL = "https://%AZURE_APP_NAME%.azurewebsites.net"
     }
         steps {
