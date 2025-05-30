@@ -90,7 +90,7 @@ pipeline {
         }
         stage('Monitoring and Alerting') {
             steps{
-                bat 'the monitoring dashboard can be found at https://melbourne-trades-college.sentry.io/issues/'
+                echo 'the monitoring dashboard can be found at https://melbourne-trades-college.sentry.io/issues/'
             }
     
         }
