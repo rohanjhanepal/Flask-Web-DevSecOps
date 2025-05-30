@@ -89,41 +89,11 @@ pipeline {
             }
         }
         stage('Monitoring and Alerting') {
-            environment {
-                AZURE_CLIENT_ID = credentials('azure-client-id') 
-                AZURE_CLIENT_SECRET = credentials('azure-client-secret')
-                AZURE_TENANT_ID = credentials('azure-tenant-id')
-                AZURE_SUBSCRIPTION_ID = credentials('azure-subscription-id')
+            steps{
+                bat 'the monitoring dashboard can be found at https://melbourne-trades-college.sentry.io/issues/'
             }
-    steps {
-        bat '''
-            echo Enabling Application Insights and logging... ^
-
-            && az monitor app-insights component create ^
-                --app flask-insights ^
-                --location eastus ^
-                --resource-group %AZURE_RESOURCE_GROUP% ^
-                --application-type web ^
-
-            && FOR /F %%i IN ('az monitor app-insights component show ^
-                --app flask-insights ^
-                --resource-group %AZURE_RESOURCE_GROUP% ^
-                --query instrumentationKey -o tsv') DO (
-                    az webapp config appsettings set ^
-                        --resource-group %AZURE_RESOURCE_GROUP% ^
-                        --name %AZURE_APP_NAME% ^
-                        --settings APPINSIGHTS_INSTRUMENTATIONKEY=%%i
-                ) ^
-
-            && az webapp log config ^
-                --name %AZURE_APP_NAME% ^
-                --resource-group %AZURE_RESOURCE_GROUP% ^
-                --application-logging true ^
-
-            && echo Monitoring setup complete.
-        '''
-    }
-}
+    
+        }
 
 
     }

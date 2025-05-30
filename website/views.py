@@ -35,3 +35,9 @@ def delete_note():
             db.session.commit()
 
     return jsonify({})
+
+
+@views.route("/error-test")
+def hello_world():
+    1/0  # raises an error
+    return "<p>This is a sample error page!</p>"

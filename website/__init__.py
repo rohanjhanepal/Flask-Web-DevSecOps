@@ -2,10 +2,17 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from os import path
 from flask_login import LoginManager
-
+import sentry_sdk
 db = SQLAlchemy()
 DB_NAME = "database.db"
 
+
+sentry_sdk.init(
+    dsn="https://346ce0f7ebf5faed688b8bfd5795243f@o4509383452524544.ingest.us.sentry.io/4509383454294016",
+    # Add data like request headers and IP for users,
+    # see https://docs.sentry.io/platforms/python/data-management/data-collected/ for more info
+    send_default_pii=True,
+)
 
 def create_app():
     app = Flask(__name__)

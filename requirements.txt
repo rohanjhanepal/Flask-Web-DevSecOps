@@ -4,3 +4,4 @@ flask-login
 pytest
 pylint
 bandit
+sentry-sdk[flask]
